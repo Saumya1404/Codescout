@@ -20,7 +20,7 @@ LANGUAGE_BY_SUFFIX = {
     ".mjs": "javascript",
     ".cjs": "javascript",
     ".ts": "typescript",
-    ".tsx": "typescript",
+    ".tsx": "tsx",
     ".json": "json",
     ".md": "markdown",
     ".toml": "toml",
@@ -87,6 +87,15 @@ def discover_files(root: Path) -> list[DiscoveredFile]:
 
 def sync_files(connection, files: list[DiscoveredFile]) -> int:
     """Upsert discovered file metadata and return the number of indexed files."""
+
+    paths = [file.relative_path for file in files]
+    if paths:
+        placeholders = ", ".join("?" for _ in paths)
+        connection.execute(
+            f"DELETE FROM files WHERE path NOT IN ({placeholders})", paths
+        )
+    else:
+        connection.execute("DELETE FROM files")
 
     connection.executemany(
         """

@@ -4,7 +4,12 @@ version = "0.1.0"
 description = "Local codebase intelligence for coding agents"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "tree-sitter>=0.25.0",
+    "tree-sitter-javascript>=0.25.0",
+    "tree-sitter-python>=0.25.0",
+    "tree-sitter-typescript>=0.23.0",
+]
 
 [project.scripts]
 codescout = "jev_codebase_explore.cli:main"
