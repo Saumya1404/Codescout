@@ -1,0 +1,23 @@
+[project]
+name = "jev-codebase-explore"
+version = "0.1.0"
+description = "Local codebase intelligence for coding agents"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+codescout = "jev_codebase_explore.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = ["tests/fixtures"]
