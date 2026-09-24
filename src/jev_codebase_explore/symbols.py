@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import lru_cache
+from pathlib import Path
 
 from tree_sitter import Language, Parser
 import tree_sitter_javascript
@@ -94,6 +95,8 @@ def index_symbols(connection, files: list[DiscoveredFile]) -> int:
         file_id = file_id_row[0]
         connection.execute("DELETE FROM symbols WHERE file_id = ?", (file_id,))
         records = parse_file(file)
+        if records or file.language in SYMBOL_KINDS:
+            records.insert(0, _module_record(file))
         connection.executemany(
             """
             INSERT INTO symbols(
@@ -121,6 +124,35 @@ def index_symbols(connection, files: list[DiscoveredFile]) -> int:
 
     connection.commit()
     return total
+
+
+def module_name_for_path(file_path: str) -> str:
+    """Convert a repository-relative source path into a stable module name."""
+
+    path = Path(file_path)
+    without_suffix = path.with_suffix("")
+    parts = list(without_suffix.parts)
+    if parts and parts[-1] == "__init__":
+        parts.pop()
+    return ".".join(parts)
+
+
+def _module_record(file: DiscoveredFile) -> SymbolRecord:
+    source = file.path.read_bytes()
+    line_count = max(1, source.count(b"\n") + 1)
+    name = module_name_for_path(file.relative_path)
+    return SymbolRecord(
+        file_path=file.relative_path,
+        qualified_name=name,
+        simple_name=name,
+        kind="module",
+        signature=f"module {name}",
+        docstring=None,
+        start_line=1,
+        end_line=line_count,
+        start_byte=0,
+        end_byte=len(source),
+    )
 
 
 @lru_cache(maxsize=4)
