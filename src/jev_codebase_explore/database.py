@@ -6,7 +6,7 @@ import sqlite3
 from pathlib import Path
 
 
-SCHEMA_VERSION = "2"
+SCHEMA_VERSION = "4"
 
 
 SCHEMA = """
@@ -67,11 +67,32 @@ CREATE TABLE IF NOT EXISTS git_changes (
     message TEXT NOT NULL DEFAULT ''
 );
 
+CREATE TABLE IF NOT EXISTS git_commits (
+    commit_hash TEXT PRIMARY KEY,
+    timestamp REAL,
+    message TEXT NOT NULL DEFAULT ''
+);
+
 CREATE INDEX IF NOT EXISTS symbols_file_id_idx ON symbols(file_id);
 CREATE INDEX IF NOT EXISTS symbols_simple_name_idx ON symbols(simple_name);
 CREATE INDEX IF NOT EXISTS edges_source_idx ON edges(source_symbol_id);
 CREATE INDEX IF NOT EXISTS edges_target_idx ON edges(target_symbol_id);
 CREATE INDEX IF NOT EXISTS tests_file_id_idx ON tests(file_id);
+CREATE INDEX IF NOT EXISTS git_changes_file_id_idx ON git_changes(file_id);
+CREATE INDEX IF NOT EXISTS git_changes_commit_hash_idx ON git_changes(commit_hash);
+
+CREATE VIRTUAL TABLE IF NOT EXISTS search_index USING fts5(
+    entity_type UNINDEXED,
+    entity_id UNINDEXED,
+    path,
+    language UNINDEXED,
+    name,
+    kind UNINDEXED,
+    signature,
+    docstring,
+    content,
+    tokenize = 'unicode61'
+);
 """
 
 
